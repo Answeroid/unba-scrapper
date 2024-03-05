@@ -10,7 +10,7 @@ class ProfilesSpider(scrapy.Spider):
     def start_requests(self):
         existing_profiles = []
 
-        for profile_number in range(1, 10001):
+        for profile_number in range(1, 100001):
             url = f"{self.base_url}/{profile_number}"
             response = requests.get(url)
 
