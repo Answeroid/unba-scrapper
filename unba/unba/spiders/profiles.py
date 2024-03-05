@@ -1,5 +1,6 @@
 import scrapy
 import requests
+from concurrent.futures import ThreadPoolExecutor
 
 
 class ProfilesSpider(scrapy.Spider):
@@ -10,19 +11,30 @@ class ProfilesSpider(scrapy.Spider):
     def start_requests(self):
         existing_profiles = []
 
-        for profile_number in range(1, 100001):
-            url = f"{self.base_url}/{profile_number}"
-            response = requests.get(url)
+        with ThreadPoolExecutor(max_workers=10) as executor:  # Adjust max_workers as needed
+            futures = []
 
-            if response.status_code == 200 and "На жаль, такої сторінки не існує" not in response.text:
-                self.log(f"Profile {profile_number} exists!")
-                existing_profiles.append(profile_number)
-                yield scrapy.Request(url=url, callback=self.parse_profile)
+            for profile_number in range(1, 100001):
+                url = f"{self.base_url}/{profile_number}"
+                future = executor.submit(self.fetch_profile, url, existing_profiles)
+                futures.append(future)
+
+            for future in futures:
+                result = future.result()
+                if result:
+                    yield result
 
         if existing_profiles:
             self.log("Existing Profiles: " + ', '.join(map(str, existing_profiles)))
         else:
             self.log("No existing profiles found.")
+
+    def fetch_profile(self, url, existing_profiles):
+        response = requests.get(url)
+        if response.status_code == 200 and "На жаль, такої сторінки не існує" not in response.text:
+            self.log(f"Profile {url} exists!")
+            existing_profiles.append(url)
+            return scrapy.Request(url=url, callback=self.parse_profile)
 
     @staticmethod
     def parse_profile(response):
