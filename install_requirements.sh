@@ -1,9 +1,9 @@
 #!/bin/bash
 
 while true; do
-  read -r -p "\nDo you want to install requirements.txt together with virtual environment? [Yy/Nn]: " yn
+  read -r -p $'\nDo you want to install requirements.txt together with the virtual environment? [Yy/Nn]: ' yn
   case $yn in
-    [Yy]* ) echo Installing...; exit;;
+    [Yy]* ) echo Installing...; break;;
     [Nn]* ) echo Exiting...; exit;;
     * ) echo "Please respond correctly.";;
   esac
@@ -39,7 +39,7 @@ echo "Creating .venv and activate it..."
 if [[ "$machine" == MinGw ]] ; then
   source .venv/bin/activate
 else
-  source source .venv/Scripts/activate
+  source .venv/Scripts/activate
 fi
 echo "Done!"
 
