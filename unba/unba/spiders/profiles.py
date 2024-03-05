@@ -14,7 +14,7 @@ class ProfilesSpider(scrapy.Spider):
             url = f"{self.base_url}/{profile_number}"
             response = requests.get(url)
 
-            if response.status_code != 200 and "На жаль, такої сторінки не існує" not in response.text:
+            if response.status_code == 200 and "На жаль, такої сторінки не існує" not in response.text:
                 self.log(f"Profile {profile_number} exists!")
                 existing_profiles.append(profile_number)
                 yield scrapy.Request(url=url, callback=self.parse_profile)
@@ -44,7 +44,8 @@ class ProfilesSpider(scrapy.Spider):
                 response.css('div.col-xs-6.col-md-3.info-about__main-secondary > p::text').getall()) > 7 else None,
             'total_exp': response.css(
                 'div.col-xs-12.col-md-6.info-about__main-secondary.no-border-r::text').get().strip(),
-            'term_right_info': response.css('div[data-id]::text').get().strip(),
+            'term_right_info': response.css('div[data-id]::text').get().strip() if response.css(
+                'div[data-id]::text').get() else None,
             'other_info': response.css('div.column-right__inner')[1].css('*::text').get().strip() if len(
                 response.css('div.column-right__inner')) > 1 else None,
             'phone_numbers': response.css('div.info-about__phones span::text').getall(),
